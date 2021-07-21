@@ -268,7 +268,113 @@ autoplot(precrec_obj)
 
 
 ```
+#Matthew Logistic Regression
+library(tidyverse)
+library(mosaic)
 
+#Read CSV
+bank <- read.csv("Churn_Modelling.csv", stringsAsFactors = FALSE)
+names(bank)
+
+
+#Credit Score (.001)
+Credit <- glm(Exited ~ CreditScore, data=bank, family="binomial")
+summary(Credit)
+
+
+library(rms)
+Credit2 <- lrm(Exited ~ CreditScore, data=bank)
+Credit2
+
+#Balance (.022)
+Bal <- glm(Exited ~ Balance, data=bank, family="binomial")
+summary(Bal)
+
+Bal2 <- lrm(Exited ~ Balance, data=bank)
+Bal2
+
+#Age (.115)
+Ag <- glm(Exited ~ Age, data=bank, family="binomial")
+summary(Ag)
+
+Ag2 <- lrm(Exited ~ Age, data=bank)
+Ag2
+
+#Tenure (0)
+Ten <- glm(Exited ~ Tenure, data=bank, family="binomial")
+summary(Ten)
+
+Ten2 <- lrm(Exited ~ Tenure, data=bank)
+Ten2
+
+#EstimatedSalary (0)
+Salary <- glm(Exited ~ EstimatedSalary, data=bank, family="binomial")
+summary(Salary)
+
+Salary2 <- lrm(Exited ~ EstimatedSalary, data=bank)
+Salary2
+
+#NumOfProducts (.004)
+
+tally(~NumOfProducts, data=bank)
+
+bank <- bank %>%
+  mutate(NumOfProducts_C = factor(NumOfProducts, labels=c("1", "2", "3", "4")))
+
+Products_C <- glm(Exited ~ NumOfProducts_C, data=bank, family="binomial")
+summary(Products_C)
+
+Products_C2 <- lrm(Exited ~ NumOfProducts_C, data=bank)
+Products_C2
+
+
+Products <- glm(Exited ~ NumOfProducts, data=bank, family="binomial")
+summary(Products)
+
+Products2 <- lrm(Exited ~ NumOfProducts, data=bank)
+Products2
+
+exp(Products_C2$coef)
+exp(confint.default(Products_C2))
+
+#HasCrCard (0)
+Card <- glm(Exited ~ HasCrCard, data=bank, family="binomial")
+summary(Card)
+
+Card2 <- lrm(Exited ~ HasCrCard, data=bank)
+Card2
+
+#IsActiveMember (.038)
+Active <- glm(Exited ~ IsActiveMember, data=bank, family="binomial")
+summary(Active)
+
+Active2 <- lrm(Exited ~ IsActiveMember, data=bank)
+Active2
+
+#Geography (.043)
+Geo <- glm(Exited ~ Geography, data=bank, family="binomial")
+summary(Geo)
+
+Geo2 <- lrm(Exited ~ Geography, data=bank)
+Geo2
+
+#Gender (.018)
+Gen <- glm(Exited ~ Gender, data=bank, family="binomial")
+summary(Gen)
+
+Gen2 <- lrm(Exited ~ Gender, data=bank)
+Gen2
+
+
+#Model (.19)
+Full <- glm(Exited ~ Age + IsActiveMember + Geography + Gender, data=bank, family="binomial")
+summary(Full)
+
+Full2 <- lrm(Exited ~ Age + IsActiveMember + Geography + Gender, data=bank)
+Full2
+
+exp(Full2$coef)
+exp(confint.default(Full2))
 
 
 
