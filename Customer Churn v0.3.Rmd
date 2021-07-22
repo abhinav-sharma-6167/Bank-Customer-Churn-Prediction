@@ -20,7 +20,7 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 # usage
-packages <- c("ggplot2", "ISLR", "DataExplorer", "RColorBrewer", "dplyr", "data.table","rpart","randomForest","xgboost","DescTools","Hmisc","ggcorrplot","MASS","tidyverse","caret","precrec")
+packages <- c("ggplot2", "ISLR", "DataExplorer", "RColorBrewer", "dplyr", "data.table","rpart","randomForest","xgboost","DescTools","Hmisc","ggcorrplot","MASS","tidyverse","caret","precrec","mltools")
 ipak(packages)
 
 options(scipen=999)
@@ -43,6 +43,7 @@ df = data.frame(raw_data)
 
 #Understanding the structure of data
 str(df)
+
 ```
 
 ```{r}
@@ -62,8 +63,7 @@ unique(df$Exited)
 ```
 
 
-```{r}
-
+```{r fig.width=5}
 ## To make data frames easily readable we have 
 ## removed unnecessary data fields
 df = subset(raw_data, select = -c(RowNumber,CustomerId,Surname))
@@ -95,37 +95,27 @@ theme_custom <- function () {
         )
 }
 
-ggplot(df, aes(x = factor(Gender))) + geom_bar(fill="skyblue2",alpha=0.65) +xlab("Gender")+
-  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+theme_custom()
+plotly::ggplotly(ggplot(df, aes(x = factor(Gender))) + geom_bar(fill="skyblue2",alpha=0.65) +xlab("Gender")+
+  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+theme_custom())
 
-ggplot(df, aes(x = factor(Geography))) + geom_bar(fill="skyblue2",alpha=0.65) +xlab("Geography")+
-  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+theme_custom()
+plotly::ggplotly(ggplot(df, aes(x = factor(Geography))) + geom_bar(fill="skyblue2",alpha=0.65) +xlab("Geography")+
+  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+theme_custom())
 
-ggplot(df, aes(x = factor(NumOfProducts))) + geom_bar(fill="skyblue2",alpha=0.65)+xlab("Number of Products")+
-  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+theme_custom()
+plotly::ggplotly(ggplot(df, aes(x = factor(NumOfProducts))) + geom_bar(fill="skyblue2",alpha=0.65)+xlab("Number of Products")+
+  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+theme_custom())
 
-ggplot(df, aes(x = factor(HasCrCard))) + geom_bar(fill="skyblue2",alpha=0.65) +xlab("Has Credit Card")+
-  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+theme_custom()
+plotly::ggplotly(ggplot(df, aes(x = factor(HasCrCard))) + geom_bar(fill="skyblue2",alpha=0.65) +xlab("Has Credit Card")+
+  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+theme_custom())
 
-ggplot(df, aes(x = factor(IsActiveMember)))+ geom_bar(fill="skyblue2",alpha=0.65)+xlab("Active membership")+
-  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+theme_custom()
+plotly::ggplotly(ggplot(df, aes(x = factor(IsActiveMember)))+ geom_bar(fill="skyblue2",alpha=0.65)+xlab("Active membership")+
+  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+theme_custom())
 
-ggplot(df, aes(x = Exited)) + geom_bar(fill="skyblue2",alpha=0.65) +
+plotly::ggplotly(ggplot(df, aes(x = Exited)) + geom_bar(fill="skyblue2",alpha=0.65) +
   geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "black")+
-  labs( x = "Exit Status")+theme_custom()
+  labs( x = "Exit Status")+theme_custom())
 
 ```
 We observe majority customers are using credit card and roughly half of them have active membership. Rate of customer exit is 20%.
-
-```{r}
-#Customer Churn by Region
-#table1 <- table(df$Exited, df$Geography, dnn=c("Exit Count", "Geography")) 
-#barplot(table1, ylab="Frequency", xlab="Geography", main="Comparing Exit Status across countries\n", 
-#        col=c("turquoise4", "turquoise2" ), beside=TRUE, width=.2)
-#legend("right", title="Exited", legend= sort(unique(df$Exited)),
-#       fill =c("turquoise4", "turquoise2" ), box.lty=0)
-
-```
 
 
 ```{r}
@@ -216,20 +206,24 @@ Almost all continuous variables are uncorrelated thereby satisfying absence of m
 
 ```{r}
 #Check impactables with simple logistic regression
-model.glm <- glm(Exited~.,df,family = "binomial")
-summary(model.glm)
+model.glm <- glm(Exited~CreditScore+Geography+Gender+Age+Tenure+HasCrCard+IsActiveMember+EstimatedSalary+Balance*NumOfProducts,df,family = "binomial")
+#summary(model.glm)
 
-
-```
-In addition to demographics such as age, gender and location,  actionable variables such as Credit score, Customer balance and active membership are strong predictors. Given above p-values might change as per number of variables, we try running stepwise regression to better understand best combination of features that we can use.
-
-```{r}
-step.model <- model.glm %>% stepAIC(trace = FALSE)
+#Stepwise with Bayesian Information criterion
+step.model <- model.glm %>% stepAIC(trace = FALSE, direction = "both"  , k=log(nrow(df)))
 cols <- names(coef(step.model))
 summary(step.model)
+```
+In addition to demographics such as age, gender and location, actionable variables such as Number of products, Customer balance and active membership are strong predictors. Given above p-values might change as per number of variables, we try running stepwise regression to better understand best combination of features that we can use. We also check for interaction effects for Number of products with Balance assuming number of products would have some association with bank engagement for which balance might be a good proxy. We observe both main and interaction effects as significant.
+
+```{r}
+PredTrain = predict(model.glm, newdata=df[,!colnames(df) == "Exited"], type="response")
+table(df$Exited, PredTrain > 0.5)
 
 ```
 
+
+Above results provide insample confusion matrix with boolean representing predictions and integer flag representing true value. We can check the errors on unseen data using CV as well.
 
 ```{r}
 #Setting up train validation test 
@@ -244,11 +238,8 @@ test.data <- df[-training.samples, ]
 train.control <- trainControl(## 10-fold repeated CV
                            method = "repeatedcv",
                            number = 10,repeats = 10)
-# Train the model
-train.data <- train.data[, colnames(train.data) %in% c(cols,"Exited")]
-test.data <- test.data[, colnames(test.data) %in% c(cols,"Exited")]
 
-cv_logit <- train(data = train.data, Exited~.,
+cv_logit <- train(data = train.data,Exited~CreditScore+Geography+Gender+Age+Tenure+HasCrCard+IsActiveMember+EstimatedSalary+Balance*NumOfProducts,
                  method = "glm", 
                  family = "binomial",
                  trControl = train.control)
@@ -257,26 +248,44 @@ summary(cv_logit)
 PredTrain = predict(cv_logit, newdata=train.data[,!colnames(train.data) == "Exited"], type="prob")
 table(train.data$Exited, PredTrain[,2] > 0.5)
 
+
 ```
 
+Using cross-validated model, precision and recall drop slightly to ~xx and ~xx respectively. We also see we aren't able to capture most of our positive class. One probable reason for this might be high class imbalance in the data.
 
-```{r fig.width=6.5, fig.height=5.5}
+```{r}
 precrec_obj <- evalmod(scores = PredTrain[,2], labels = train.data$Exited)
 autoplot(precrec_obj)
 #precrec_obj <- evalmod(scores = PredTrain[,2], labels = train.data$Exited,mode="basic")
 #autoplot(precrec_obj)
+auc_dt_logistic <- mltools::auc_roc( PredTrain[,2], as.numeric(as.character(train.data$Exited)),returnDT = T)
+cat("AUC ROC for logistic regression is : \n\n",mltools::auc_roc( PredTrain[,2], as.numeric(as.character(train.data$Exited))))
+
+```
+
+
+```{r}
+#Tree based model
+
 
 ```
 
 
 
 ```{r}
-
+#Random Forest Based model
 
 
 
 ```
 
 
+```{r}
+#Iterative Boosting based model post correcting for class imbalance
 
+
+
+
+
+```
 
