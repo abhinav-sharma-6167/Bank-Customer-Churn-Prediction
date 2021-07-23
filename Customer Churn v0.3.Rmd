@@ -271,51 +271,13 @@ autoplot(precrec_obj)
 #Matthew Logistic Regression
 library(tidyverse)
 library(mosaic)
+library(rms) #(lrm)
 
 #Read CSV
 bank <- read.csv("Churn_Modelling.csv", stringsAsFactors = FALSE)
 names(bank)
 
-
-#Credit Score (.001)
-Credit <- glm(Exited ~ CreditScore, data=bank, family="binomial")
-summary(Credit)
-
-
-library(rms)
-Credit2 <- lrm(Exited ~ CreditScore, data=bank)
-Credit2
-
-#Balance (.022)
-Bal <- glm(Exited ~ Balance, data=bank, family="binomial")
-summary(Bal)
-
-Bal2 <- lrm(Exited ~ Balance, data=bank)
-Bal2
-
-#Age (.115)
-Ag <- glm(Exited ~ Age, data=bank, family="binomial")
-summary(Ag)
-
-Ag2 <- lrm(Exited ~ Age, data=bank)
-Ag2
-
-#Tenure (0)
-Ten <- glm(Exited ~ Tenure, data=bank, family="binomial")
-summary(Ten)
-
-Ten2 <- lrm(Exited ~ Tenure, data=bank)
-Ten2
-
-#EstimatedSalary (0)
-Salary <- glm(Exited ~ EstimatedSalary, data=bank, family="binomial")
-summary(Salary)
-
-Salary2 <- lrm(Exited ~ EstimatedSalary, data=bank)
-Salary2
-
-#NumOfProducts (.004)
-
+#NumOfProducts_C (AIC 8718.8)
 tally(~NumOfProducts, data=bank)
 
 bank <- bank %>%
@@ -324,57 +286,90 @@ bank <- bank %>%
 Products_C <- glm(Exited ~ NumOfProducts_C, data=bank, family="binomial")
 summary(Products_C)
 
-Products_C2 <- lrm(Exited ~ NumOfProducts_C, data=bank)
-Products_C2
-
-
+#Products (AIC 10090)
 Products <- glm(Exited ~ NumOfProducts, data=bank, family="binomial")
 summary(Products)
 
-Products2 <- lrm(Exited ~ NumOfProducts, data=bank)
-Products2
+#Age (AIC 9355.1)
+Ag <- glm(Exited ~ Age, data=bank, family="binomial")
+summary(Ag)
 
-exp(Products_C2$coef)
-exp(confint.default(Products_C2))
-
-#HasCrCard (0)
-Card <- glm(Exited ~ HasCrCard, data=bank, family="binomial")
-summary(Card)
-
-Card2 <- lrm(Exited ~ HasCrCard, data=bank)
-Card2
-
-#IsActiveMember (.038)
-Active <- glm(Exited ~ IsActiveMember, data=bank, family="binomial")
-summary(Active)
-
-Active2 <- lrm(Exited ~ IsActiveMember, data=bank)
-Active2
-
-#Geography (.043)
+#Geography (AIC 9835.4)
 Geo <- glm(Exited ~ Geography, data=bank, family="binomial")
 summary(Geo)
 
-Geo2 <- lrm(Exited ~ Geography, data=bank)
-Geo2
+#Activity (AIC 9868)
+Active <- glm(Exited ~ IsActiveMember, data=bank, family="binomial")
+summary(Active)
 
-#Gender (.018)
+#Balance (AIC 9971)
+Bal <- glm(Exited ~ Balance, data=bank, family="binomial")
+summary(Bal)
+
+#Gender (AIC 10001)
 Gen <- glm(Exited ~ Gender, data=bank, family="binomial")
 summary(Gen)
 
-Gen2 <- lrm(Exited ~ Gender, data=bank)
-Gen2
+#Credit Score (AIC 10106)
+Credit <- glm(Exited ~ CreditScore, data=bank, family="binomial")
+summary(Credit)
 
+#Tenure (AIC 10112)
+Ten <- glm(Exited ~ Tenure, data=bank, family="binomial")
+summary(Ten)
 
-#Model (.19)
-Full <- glm(Exited ~ Age + IsActiveMember + Geography + Gender, data=bank, family="binomial")
+#EstimatedSalary (AIC 10112)
+Salary <- glm(Exited ~ EstimatedSalary, data=bank, family="binomial")
+summary(Salary)
+
+#HasCrCard (AIC 10113)
+Card <- glm(Exited ~ HasCrCard, data=bank, family="binomial")
+summary(Card)
+
+#Model 1 (AIC 8099.2)
+Mod1 <- glm(Exited ~ NumOfProducts_C + Age, data=bank, family="binomial")
+summary(Mod1)
+
+#Model 2 (AIC 7879.8)
+Mod2 <- glm(Exited ~ NumOfProducts_C + Age + Geography, data=bank, family="binomial")
+summary(Mod2)
+
+#Model 3 (AIC 7537.1 )
+Mod3 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember, data=bank, family="binomial")
+summary(Mod3)
+
+#Model 4 (AIC 7536.7 ) (Balance not significant)
+Mod4 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Balance, data=bank, family="binomial")
+summary(Mod4)
+
+#Model 5 (AIC 7458.8)
+Mod5 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender, data=bank, family="binomial")
+summary(Mod5)
+
+#Model 6 (AIC 7455.6)
+Mod6 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore, data=bank, family="binomial")
+summary(Mod6)
+
+#Model 7 (AIC 7453.7)
+Mod7 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore + Tenure, data=bank, family="binomial")
+summary(Mod7)
+
+#Model 8 (AIC 7455)
+Mod8 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore + Tenure + EstimatedSalary, data=bank, family="binomial")
+summary(Mod8)
+
+#Model 9 (AIC 7454.9)
+Mod9 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore + Tenure + HasCrCard, data=bank, family="binomial")
+summary(Mod9)
+
+#Full Model (Model 7)
+Full <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore + Tenure, data=bank, family="binomial")
 summary(Full)
 
-Full2 <- lrm(Exited ~ Age + IsActiveMember + Geography + Gender, data=bank)
+Full2 <- lrm(Exited ~ Age + IsActiveMember + Geography + Gender + NumOfProducts_C, data=bank)
 Full2
 
-exp(Full2$coef)
-exp(confint.default(Full2))
+signif(exp(Full2$coef), digits=3)
 
 
 
