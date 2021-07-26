@@ -288,4 +288,115 @@ cat("AUC ROC for logistic regression is : \n\n",mltools::auc_roc( PredTrain[,2],
 
 
 ```
+#Logistic Regression
 
+library(tidyverse)
+library(mosaic)
+library(rms) #(lrm)
+
+#Read CSV
+bank <- read.csv("Churn_Modelling.csv", stringsAsFactors = FALSE)
+names(bank)
+
+#NumOfProducts_C (AIC 8718.8)
+tally(~NumOfProducts, data=bank)
+
+bank <- bank %>%
+  mutate(NumOfProducts_C = factor(NumOfProducts, labels=c("1", "2", "3", "4")))
+
+Products_C <- glm(Exited ~ NumOfProducts_C, data=bank, family="binomial")
+summary(Products_C)
+
+#Products (AIC 10090)
+Products <- glm(Exited ~ NumOfProducts, data=bank, family="binomial")
+summary(Products)
+
+#Age (AIC 9355.1)
+Ag <- glm(Exited ~ Age, data=bank, family="binomial")
+summary(Ag)
+
+#Geography (AIC 9835.4)
+Geo <- glm(Exited ~ Geography, data=bank, family="binomial")
+summary(Geo)
+
+#Activity (AIC 9868)
+Active <- glm(Exited ~ IsActiveMember, data=bank, family="binomial")
+summary(Active)
+
+#Balance (AIC 9971)
+Bal <- glm(Exited ~ Balance, data=bank, family="binomial")
+summary(Bal)
+
+#Gender (AIC 10001)
+Gen <- glm(Exited ~ Gender, data=bank, family="binomial")
+summary(Gen)
+
+#Credit Score (AIC 10106)
+Credit <- glm(Exited ~ CreditScore, data=bank, family="binomial")
+summary(Credit)
+
+#Tenure (AIC 10112)
+Ten <- glm(Exited ~ Tenure, data=bank, family="binomial")
+summary(Ten)
+
+#EstimatedSalary (AIC 10112)
+Salary <- glm(Exited ~ EstimatedSalary, data=bank, family="binomial")
+summary(Salary)
+
+#HasCrCard (AIC 10113)
+Card <- glm(Exited ~ HasCrCard, data=bank, family="binomial")
+summary(Card)
+
+#Model 1 (AIC 8099.2)
+Mod1 <- glm(Exited ~ NumOfProducts_C + Age, data=bank, family="binomial")
+summary(Mod1)
+
+#Model 2 (AIC 7879.8)
+Mod2 <- glm(Exited ~ NumOfProducts_C + Age + Geography, data=bank, family="binomial")
+summary(Mod2)
+
+#Model 3 (AIC 7537.1 )
+Mod3 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember, data=bank, family="binomial")
+summary(Mod3)
+
+#Model 4 (AIC 7536.7 ) (Balance not significant)
+Mod4 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Balance, data=bank, family="binomial")
+summary(Mod4)
+
+#Model 5 (AIC 7458.8)
+Mod5 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender, data=bank, family="binomial")
+summary(Mod5)
+
+#Model 6 (AIC 7455.6)
+Mod6 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore, data=bank, family="binomial")
+summary(Mod6)
+
+#Model 7 (AIC 7453.7)
+Mod7 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore + Tenure, data=bank, family="binomial")
+summary(Mod7)
+
+#Model 8 (AIC 7455)
+Mod8 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore + Tenure + EstimatedSalary, data=bank, family="binomial")
+summary(Mod8)
+
+#Model 9 (AIC 7454.9)
+Mod9 <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore + Tenure + HasCrCard, data=bank, family="binomial")
+summary(Mod9)
+
+#Final (Model 7)
+Full <- glm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore + Tenure, data=bank, family="binomial")
+summary(Full)
+
+Final <- lrm(Exited ~ NumOfProducts_C + Age + Geography + IsActiveMember + Gender + CreditScore + Tenure, x=TRUE, y=TRUE, data=bank)
+Final
+
+signif(exp(Final$coef), digits=3)
+
+validFull <- validate(Final, method="boot", B=50)
+validFull
+
+calibFull <- calibrate(Final, method="boot", B=50)
+calibFull
+
+par(bg="white", las=1)
+plot(calibFull, las=1)
